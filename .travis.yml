@@ -7,6 +7,11 @@ go:
 script:
 - go test -v ./...
 
+notifications:
+  email: false
+
+install: true
+
 deploy:
 - provider: script
   skip_cleanup: true
