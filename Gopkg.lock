@@ -59,6 +59,7 @@
     ".",
     "hcl/ast",
     "hcl/parser",
+    "hcl/printer",
     "hcl/scanner",
     "hcl/strconv",
     "hcl/token",
@@ -96,14 +97,14 @@
   version = "v1.7.6"
 
 [[projects]]
+  branch = "master"
   name = "github.com/manifoldco/promptui"
   packages = [
     ".",
     "list",
     "screenbuf"
   ]
-  revision = "f6438f6153008ee1b9ba5446d5333bbe63b622b7"
-  version = "v0.2.1"
+  revision = "8debffa8c66b4342872ef0465eee2aa01481849d"
 
 [[projects]]
   branch = "master"
@@ -202,10 +203,10 @@
   version = "v1.2.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/spf13/cobra"
   packages = ["."]
-  revision = "7b2c5ac9fc04fc5efafb60700713d4fa609b777b"
-  version = "v0.0.1"
+  revision = "a1e4933ab784095895e33dbe9f001ba10cfe2060"
 
 [[projects]]
   branch = "master"
@@ -220,10 +221,10 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/spf13/viper"
   packages = ["."]
-  revision = "25b30aa063fc18e48662b86996252eabdcf2f0c7"
-  version = "v1.0.0"
+  revision = "aafc9e6bc7b7bb53ddaa75a5ef49a17d6e654be5"
 
 [[projects]]
   branch = "master"
@@ -311,6 +312,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "024f231e93e4da9139c8a1b6f349f66a3c6f5c2b425734dcf802535d4ce6039a"
+  inputs-digest = "b5c030abbcc8c832fb3460dcdd0b649c923d78a38647d76f60c821b1b86c309e"
   solver-name = "gps-cdcl"
   solver-version = 1
