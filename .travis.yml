@@ -1,0 +1,15 @@
+language: go
+
+go:
+- 1.10
+
+script:
+- go test -v ./...
+
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: curl -sL http://git.io/goreleaser | bash
+  on:
+    tags: true
+    condition: $TRAVIS_OS_NAME = linux
