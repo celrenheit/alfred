@@ -1,7 +1,7 @@
 # .goreleaser.yml
 project_name: alfred
 builds:
-  - main: cmd/alfred/main.go
+  - main: main.go
     binary: alfred
     goos:
       - windows
