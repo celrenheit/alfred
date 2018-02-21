@@ -1,0 +1,35 @@
+# .goreleaser.yml
+project_name: alfred
+builds:
+  - main: cmd/alfred/main.go
+    binary: alfred
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+
+brew:
+  github:
+    owner: celrenheit
+    name: homebrew-taps
+
+  commit_author:
+    name: Celrenheit
+    email: celrenheit+github@gmail.com
+
+  folder: Formula
+
+  homepage: "https://github.com/celrenheit/alfred"
+
+  description: "A user friendly Stellar wallets manager."
+
+archive:
+  format: tar.gz
+  replacements:
+    amd64: 64-bit
+    darwin: macOS
+  files:
+    - LICENSE
+    - README.md
