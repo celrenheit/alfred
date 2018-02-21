@@ -112,7 +112,7 @@ func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
 		} else {
 			w = m.WalletByName(from)
 			if w == nil {
-				fatalf("wallet '%s' not found", from)
+				return fmt.Errorf("wallet '%s' not found", from)
 			}
 		}
 
@@ -144,7 +144,7 @@ func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
 					memo = contact.Memo.ToTransactionMutator()
 				}
 			} else {
-				fatalf("destination '%s' not found", to)
+				return fmt.Errorf("destination '%s' not found", to)
 			}
 		}
 	} else {
@@ -180,8 +180,7 @@ func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
 	}
 
 	if !exists {
-		fmt.Println("source account does exists, please fund it first")
-		return nil
+		return fmt.Errorf("source account does exists, please fund it first")
 	}
 
 	_, exists, err = getAccount(client, to)

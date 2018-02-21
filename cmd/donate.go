@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/celrenheit/alfred/parser"
 	"github.com/manifoldco/promptui"
 
 	"github.com/spf13/cobra"
@@ -57,8 +58,14 @@ var donateCmd = &cobra.Command{
 			}
 		}
 
-		qry := fmt.Sprintf("send %s XLM to %s", amount, alfredAddress)
-		pleaseCmd.Run(cmd, []string{qry})
+		err := sendRequest(cmd, &parser.SendRequest{
+			Amount:   amount,
+			Currency: "XLM",
+			To:       alfredAddress,
+		})
+		if err != nil {
+			fatalf(describeHorizonError(err))
+		}
 		fmt.Println("Thank You ♥️")
 		fmt.Println("Keep on rockin' 🚀")
 	},
