@@ -212,13 +212,12 @@ func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
 		opts = append(opts, memo)
 	}
 
-	tx := build.Transaction(opts...)
-
+	tx, err := build.Transaction(opts...)
 	if err != nil {
 		return err
 	}
 
-	txe := tx.Sign(src.Seed())
+	txe, err := tx.Sign(src.Seed())
 	if err != nil {
 		return err
 	}
