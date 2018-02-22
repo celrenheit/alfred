@@ -18,12 +18,14 @@
 - [Feature](#feature)
 - [Install](#install)
 - [Usage](#usage)
+  - [Typical workflow](#typical-workflow)
   - [Importing a wallet](#importing-a-wallet)
   - [Creating a random wallet](#creating-a-random-wallet)
     - [Creating a vanity address](#creating-a-vanity-address)
   - [Show balances:](#show-balances)
   - [Sending lumens](#sending-lumens)
   - [Adding contacts](#adding-contacts)
+- [Disclaimer](#disclaimer)
 - [Donate](#donate)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -94,6 +96,11 @@ alfred send 10 XLM from master to jennifer
 ```shell
 alfred new contact
 ```
+
+# Disclaimer
+
+USE AT YOUR OWN RISK.
+Always keep your secret seeds in a safe place (for example, a paper wallet).
 
 # Donate
 
