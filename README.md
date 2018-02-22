@@ -15,6 +15,8 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
+- [Feature](#feature)
+- [Install](#install)
 - [Usage](#usage)
   - [Importing a wallet](#importing-a-wallet)
   - [Creating a random wallet](#creating-a-random-wallet)
@@ -22,14 +24,32 @@
   - [Show balances:](#show-balances)
   - [Sending lumens](#sending-lumens)
   - [Adding contacts](#adding-contacts)
-- [Install](#install)
-  - [MacOS](#macos)
-  - [From source](#from-source)
 - [Donate](#donate)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+# Feature
+
+- Single human readable yaml file
+- AES encryption for seeds
+- Contacts/aliases
+- (very) easy to use
+
+# Install 
+
+- MacOS: `brew install celrenheit/taps/alfred`
+- Windows/Linux: https://github.com/celrenheit/alfred/releases
+- From Source: `go get -u github.com/celrenheit/alfred`
+
 # Usage
+
+
+## Typical workflow
+
+<p align="center">
+  <img alt="Typical workflow" src="./img/workflow.png">
+</p>
+
 
 ## Importing a wallet
 ```shell
@@ -74,23 +94,6 @@ alfred send 10 XLM from master to jennifer
 ```shell
 alfred new contact
 ```
-
-# Install 
-
-## MacOS
-
-```shell
-brew install celrenheit/taps/alfred
-```
-
-## From source
-
-You need to install Go first, then run:
-
-```shell
-go get -u github.com/celrenheit/alfred
-```
-
 
 # Donate
 
