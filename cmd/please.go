@@ -203,12 +203,17 @@ func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
 
 	opts := []build.TransactionMutator{
 		build.SourceAccount{src.Seed()},
-		build.TestNetwork,
 		build.AutoSequence{SequenceProvider: client},
 		txnMutator,
 	}
 	if memo != nil {
 		opts = append(opts, memo)
+	}
+
+	if viper.GetBool("testnet") {
+		opts = append(opts, build.TestNetwork)
+	} else {
+		opts = append(opts, build.PublicNetwork)
 	}
 
 	tx, err := build.Transaction(opts...)
