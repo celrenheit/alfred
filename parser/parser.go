@@ -20,6 +20,8 @@ func ParseReader(reader *strings.Reader) (s Statement, err error) {
 	switch tok.kind {
 	case tokenSend:
 		s = &SendRequest{}
+	case tokenSHARE:
+		s = &ShareAccountRequest{}
 	default:
 		return nil, fmt.Errorf("parser: unknown statement '%s' got: '%v'", tok.value, tok)
 	}

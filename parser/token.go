@@ -1,11 +1,15 @@
 package parser
 
+import (
+	"fmt"
+)
+
 type tokenKind int
 
 //go:generate stringer -type=tokenKind -linecomment
 const (
 	tokenUnknown tokenKind = iota
-	tokenEof
+	tokenEof               // EOF
 
 	tokenIdent // IDENT
 
@@ -36,4 +40,8 @@ const (
 type token struct {
 	kind  tokenKind
 	value string
+}
+
+func (t token) String() string {
+	return fmt.Sprintf("%s('%s')", t.kind.String(), t.value)
 }

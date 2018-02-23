@@ -29,6 +29,24 @@ func TestParser(t *testing.T) {
 			Currency: "XLM",
 			To:       "jennifer",
 		}, false},
+		{"SHARE ACCOUNT master WITH alice, bob, celine", &ShareAccountRequest{
+			Account:            "master",
+			AdditionnalSigners: []string{"alice", "bob", "celine"},
+		}, false},
+		{"SHARE ACCOUNT master WITH alice, bob and celine", &ShareAccountRequest{
+			Account:            "master",
+			AdditionnalSigners: []string{"alice", "bob", "celine"},
+		}, false},
+		{"SHARE ACCOUNT master WITH alice and bob, celine", &ShareAccountRequest{
+			Account:            "master",
+			AdditionnalSigners: []string{"alice", "bob", "celine"},
+		}, false},
+		{"SHARE ACCOUNT WITH alice, bob, celine", nil, true},
+		{"SHARE ACCOUNT master WITH alice,,, bob, celine", nil, true},
+		{"SHARE ACCOUNT master WITH alice,,", nil, true},
+		{"SHARE ACCOUNT master WITH", nil, true},
+		{"SHARE ACCOUNT master WITH ,", nil, true},
+		{"SHARE ACCOUNT master", nil, true},
 	}
 
 	for _, test := range tests {
@@ -44,6 +62,8 @@ func TestParser(t *testing.T) {
 			switch s := statement.(type) {
 			case *SendRequest:
 				require.Equal(t, SendKind, s.Kind())
+			case *ShareAccountRequest:
+				require.Equal(t, ShareAccountKind, s.Kind())
 			default:
 				t.Fatalf("unexpected type %T", s)
 			}

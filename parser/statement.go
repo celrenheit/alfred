@@ -1,13 +1,14 @@
 package parser
 
 import (
-	"errors"
+	"fmt"
 )
 
 type Kind int
 
 const (
 	SendKind Kind = iota + 1
+	ShareAccountKind
 )
 
 type Statement interface {
@@ -22,7 +23,7 @@ func parseIdent(l *lexer) (string, error) {
 	}
 
 	if tok.kind != tokenIdent {
-		return "", errors.New("should be an identifier token")
+		return "", fmt.Errorf("should be an identifier token, got: '%v'", tok)
 	}
 
 	return tok.value, nil

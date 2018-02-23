@@ -73,8 +73,8 @@ func (l *lexer) scanIdent() (string, error) {
 			return "", err
 		}
 
-		if unicode.IsSpace(r) {
-			// l.reader.UnreadRune()
+		if unicode.IsSpace(r) || r == ',' {
+			l.reader.UnreadRune()
 			break
 		}
 
