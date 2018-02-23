@@ -36,6 +36,8 @@
 - AES encryption for seeds
 - Contacts/aliases
 - (very) easy to use
+- Create shared accounts 
+  - 1 master in full control (dictator) with multiple possible payers (having medium access)
 
 # Install 
 
@@ -95,6 +97,13 @@ alfred send 10 XLM from master to jennifer
 
 ```shell
 alfred new contact
+```
+
+
+## Sharing an account
+
+```shell
+alfred please share account savings with alice, bob and celine
 ```
 
 # Disclaimer
