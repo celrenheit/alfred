@@ -9,14 +9,25 @@ const (
 
 	tokenIdent // IDENT
 
-	tokenSelect // SELECT
-	tokenSend   // SEND
+	//
+
+	_tokStartKeywords
+
+	tokenSelect  // SELECT
+	tokenSend    // SEND
+	tokenSHARE   // SHARE
+	tokenACCOUNT // ACCOUNT
 
 	tokenFrom // FROM
 	tokenTo   // TO
 
 	tokenWith  // WITH
 	tokenWhere // WHERE
+	tokenAND   // AND
+
+	_tokEndKeywords
+
+	//
 
 	tokenNumber // NUMBER
 	tokenCOMMA  // COMMA

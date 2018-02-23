@@ -44,15 +44,9 @@ func (l *lexer) Next() (*token, error) {
 		return nil, err
 	}
 
-	kinds := []tokenKind{
-		tokenSelect,
-		tokenSend,
-
-		tokenFrom,
-		tokenTo,
-
-		tokenWith,
-		tokenWhere,
+	var kinds []tokenKind
+	for i := _tokStartKeywords + 1; i < _tokEndKeywords; i++ {
+		kinds = append(kinds, tokenKind(i))
 	}
 
 	for _, kind := range kinds {
