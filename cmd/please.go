@@ -55,12 +55,15 @@ var pleaseCmd = &cobra.Command{
 
 		switch req := statement.(type) {
 		case *parser.SendRequest:
-			err := sendRequest(cmd, req)
-			if err != nil {
-				fatalf(describeHorizonError(err))
-			}
+			err = sendRequest(cmd, req)
+		case *parser.ShareAccountRequest:
+			err = shareRequest(cmd, req)
 		default:
 			fatalf("unsupported statement type: %T", statement.Kind())
+		}
+
+		if err != nil {
+			fatalf(describeHorizonError(err))
 		}
 	},
 }
@@ -240,6 +243,119 @@ func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
 		table.Append([]string{"Destination", to})
 		table.Render()
 
+		_, err = (&promptui.Prompt{
+			Label:     "Are you sure",
+			IsConfirm: true,
+		}).Run()
+		if err != nil {
+			return err
+		}
+	}
+
+	resp, err := client.SubmitTransaction(txeB64)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(resp.Hash)
+	return nil
+}
+
+func shareRequest(cmd *cobra.Command, req *parser.ShareAccountRequest) error {
+	client := getClient(viper.GetBool("testnet"))
+
+	path := viper.GetString("db")
+	secret := viper.GetString("secret")
+	m, err := wallet.OpenSecretString(path, secret)
+	if err != nil {
+		return err
+	}
+
+	getAddress := func(in string) keypair.KP {
+		if kp, err := keypair.Parse(in); err == nil { // to custom address
+			return kp
+		} else {
+			if w := m.WalletByName(in); w != nil { // between wallet
+				return w.Keypair
+			} else if contact, ok := m.Stellar.Contacts[in]; ok { // to contact
+				return keypair.MustParse(contact.Address)
+			}
+		}
+		return nil
+	}
+
+	addr := getAddress(req.Account)
+	if addr == nil {
+		return fmt.Errorf("'%v' wallet not found", req.Account)
+	}
+
+	src := addr.(*keypair.Full)
+
+	masterAcc, exists, err := getAccount(client, addr.Address())
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("'%v' does not exist, fund it first", req.Account)
+	}
+
+	var newSigners []horizon.Account
+	for _, name := range req.AdditionnalSigners {
+		addr := getAddress(name)
+		if addr == nil {
+			return fmt.Errorf("address not found for '%v'", name)
+		}
+
+		acc, exists, err := getAccount(client, addr.Address())
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return fmt.Errorf("'%v' does not exist, fund it first", name)
+		}
+
+		newSigners = append(newSigners, acc)
+	}
+
+	threshold := uint32(1 + len(req.AdditionnalSigners) + len(masterAcc.Signers))
+
+	var sopts []interface{}
+	for _, acc := range newSigners {
+		sopts = append(sopts, build.AddSigner(acc.AccountID, 1))
+	}
+	sopts = append(sopts,
+		build.MasterWeight(threshold),
+		build.SetThresholds(1, 1, threshold),
+	)
+
+	opts := []build.TransactionMutator{
+		build.SourceAccount{src.Seed()},
+		build.AutoSequence{SequenceProvider: client},
+		build.SetOptions(sopts...),
+	}
+
+	if viper.GetBool("testnet") {
+		opts = append(opts, build.TestNetwork)
+	} else {
+		opts = append(opts, build.PublicNetwork)
+	}
+
+	tx, err := build.Transaction(opts...)
+	if err != nil {
+		return err
+	}
+
+	txe, err := tx.Sign(src.Seed())
+	if err != nil {
+		return err
+	}
+
+	txeB64, err := txe.Base64()
+	if err != nil {
+		return err
+	}
+
+	if !viper.GetBool("yes") {
 		_, err = (&promptui.Prompt{
 			Label:     "Are you sure",
 			IsConfirm: true,
