@@ -17,6 +17,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -58,6 +59,8 @@ var pleaseCmd = &cobra.Command{
 			err = sendRequest(cmd, req)
 		case *parser.ShareAccountRequest:
 			err = shareRequest(cmd, req)
+		case *parser.SetDataRequest:
+			err = setData(cmd, req)
 		default:
 			fatalf("unsupported statement type: %T", statement.Kind())
 		}
@@ -121,17 +124,10 @@ func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
 
 		src = w.Keypair.(*keypair.Full)
 	} else {
-		sel := promptui.Select{
-			Label: "Select Wallet",
-			Items: m.Stellar.Wallets,
-		}
-
-		idx, _, err := sel.Run()
+		src, err = selectWallet(m)
 		if err != nil {
 			return err
 		}
-
-		src = m.Stellar.Wallets[idx].Keypair.(*keypair.Full)
 	}
 
 	var memo build.TransactionMutator
@@ -372,4 +368,110 @@ func shareRequest(cmd *cobra.Command, req *parser.ShareAccountRequest) error {
 
 	fmt.Println(resp.Hash)
 	return nil
+}
+
+func setData(cmd *cobra.Command, req *parser.SetDataRequest) error {
+	client := getClient(viper.GetBool("testnet"))
+
+	path := viper.GetString("db")
+	secret := viper.GetString("secret")
+	m, err := wallet.OpenSecretString(path, secret)
+	if err != nil {
+		return err
+	}
+
+	src, err := selectWallet(m)
+	if err != nil {
+		return err
+	}
+
+	var sopts []build.TransactionMutator
+	for key, value := range req.KVs {
+		var data []byte
+		switch value.Kind {
+		case parser.SetDataFromString:
+			data = []byte(value.Value)
+		case parser.SetDataFromFile:
+			data, err = ioutil.ReadFile(value.Value)
+
+			if err != nil {
+				return err
+			}
+		}
+
+		sopts = append(sopts, build.SetData(key, data))
+	}
+
+	opts := []build.TransactionMutator{
+		build.SourceAccount{src.Seed()},
+		build.AutoSequence{SequenceProvider: client},
+	}
+
+	opts = append(opts, sopts...)
+
+	if viper.GetBool("testnet") {
+		opts = append(opts, build.TestNetwork)
+	} else {
+		opts = append(opts, build.PublicNetwork)
+	}
+
+	tx, err := build.Transaction(opts...)
+	if err != nil {
+		return err
+	}
+
+	txe, err := tx.Sign(src.Seed())
+	if err != nil {
+		return err
+	}
+
+	txeB64, err := txe.Base64()
+	if err != nil {
+		return err
+	}
+
+	if !viper.GetBool("yes") {
+		_, err = (&promptui.Prompt{
+			Label:     "Are you sure",
+			IsConfirm: true,
+		}).Run()
+		if err != nil {
+			return err
+		}
+	}
+
+	resp, err := client.SubmitTransaction(txeB64)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(resp.Hash)
+	return nil
+}
+
+func getAddress(m *wallet.Alfred, in string) keypair.KP {
+	if kp, err := keypair.Parse(in); err == nil { // to custom address
+		return kp
+	} else {
+		if w := m.WalletByName(in); w != nil { // between wallet
+			return w.Keypair
+		} else if contact, ok := m.Stellar.Contacts[in]; ok { // to contact
+			return keypair.MustParse(contact.Address)
+		}
+	}
+	return nil
+}
+
+func selectWallet(m *wallet.Alfred) (*keypair.Full, error) {
+	sel := promptui.Select{
+		Label: "Select Wallet",
+		Items: m.Stellar.Wallets,
+	}
+
+	idx, _, err := sel.Run()
+	if err != nil {
+		return nil, err
+	}
+
+	return m.Stellar.Wallets[idx].Keypair.(*keypair.Full), nil
 }
