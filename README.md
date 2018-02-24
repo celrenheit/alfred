@@ -38,6 +38,7 @@
 - (very) easy to use
 - Create shared accounts 
   - 1 master in full control (dictator) with multiple possible payers (having medium access)
+- Set Data using manage_data
 
 # Install 
 
@@ -104,6 +105,26 @@ alfred new contact
 
 ```shell
 alfred please share account savings with alice, bob and celine
+```
+
+## Setting data
+
+In this example, it will set data key-value pairs for the selected account:
+
+```shell
+alfred please set data mykey1 = myvalue1, mykey2 = myvalue2 
+```
+
+It possible to setup the contents of a file (using `from` keyword) as the value of a key:
+
+```shell
+alfred please set data mykey1 from ./text.txt
+```
+
+**NOTE**: If you want your keys or values to have spaces or special characters, you have to use quotes (`"`or `'`) around the whole query and the key/value:
+
+```shell
+alfred please 'set data "my key 1" = "my value 1", "my key 2" from "./text space.txt"' 
 ```
 
 # Disclaimer
