@@ -18,11 +18,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"runtime"
 	"strings"
 	"time"
 
 	"github.com/manifoldco/promptui"
+	"github.com/olekukonko/tablewriter"
 
 	"golang.org/x/sync/errgroup"
 
@@ -66,10 +68,12 @@ var newCmd = &cobra.Command{
 				fatal("error opening backup:", err)
 			}
 
-			// table := tablewriter.NewWriter(os.Stdout)
-			// table.SetHeader([]string{"Address", "Seed"})
-			// table.Append([]string{kp.Address(), kp.Seed()})
-			// table.Render()
+			if viper.GetBool("print-seed") {
+				table := tablewriter.NewWriter(os.Stdout)
+				table.SetHeader([]string{"Address", "Seed"})
+				table.Append([]string{kp.Address(), kp.Seed()})
+				table.Render()
+			}
 
 			if err := wallet.Write(path, m); err != nil {
 				fatal("error opening backup:", err)
@@ -231,6 +235,7 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
+	newCmd.Flags().Bool("print-seed", false, "prints seeds to stdout")
 	newCmd.Flags().String("name", "", "name of the wallet")
 	newCmd.Flags().String("suffix", "", "suffix for vanity addresses")
 	viper.BindPFlags(newCmd.Flags())
