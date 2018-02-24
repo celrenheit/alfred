@@ -17,21 +17,24 @@ func TestLexer(t *testing.T) {
 		{"from", tokenFrom, "from", false},
 		{"from ", tokenFrom, "from", false},
 		{"to", tokenTo, "to", false},
-		// {"`", 0, "", true},
+		{"`", 0, "", true},
 		{"", tokenEof, "", false},
+		{"=", tokenEQUAL, "=", false},
 	}
 
 	for _, test := range tests {
-		l := lexer{reader: strings.NewReader(test.input)}
-		tok, err := l.Next()
-		if test.wantErr {
-			require.Error(t, err)
-			continue
-		}
+		t.Run(test.input, func(t *testing.T) {
+			l := lexer{reader: strings.NewReader(test.input)}
+			tok, err := l.Next()
+			if test.wantErr {
+				require.Error(t, err)
+				return
+			}
 
-		require.NoError(t, err)
+			require.NoError(t, err)
 
-		require.Equal(t, test.wantKind, tok.kind, tok.kind.String())
-		require.Equal(t, test.wantValue, tok.value, tok.value)
+			require.Equal(t, test.wantKind, tok.kind, tok.kind.String())
+			require.Equal(t, test.wantValue, tok.value, tok.value)
+		})
 	}
 }

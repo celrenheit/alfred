@@ -28,6 +28,8 @@ const (
 	tokenWith  // WITH
 	tokenWhere // WHERE
 	tokenAND   // AND
+	tokenSET   // SET
+	tokenDATA  // DATA
 
 	_tokEndKeywords
 
@@ -35,6 +37,7 @@ const (
 
 	tokenNumber // NUMBER
 	tokenCOMMA  // COMMA
+	tokenEQUAL  // EQUAL
 )
 
 type token struct {

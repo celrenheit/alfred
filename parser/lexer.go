@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"io"
 	"strconv"
 	"strings"
@@ -33,6 +34,8 @@ func (l *lexer) Next() (*token, error) {
 	// check quotes, commas, etc..
 	case ',':
 		return &token{kind: tokenCOMMA, value: string(r)}, nil
+	case '=':
+		return &token{kind: tokenEQUAL, value: string(r)}, nil
 	}
 
 	if err := l.reader.UnreadRune(); err != nil {
@@ -59,6 +62,10 @@ func (l *lexer) Next() (*token, error) {
 		return &token{kind: tokenNumber, value: value}, nil
 	}
 
+	if value == "" {
+		return nil, fmt.Errorf("unable to find token for '%s'", value)
+	}
+
 	return &token{kind: tokenIdent, value: value}, nil
 }
 
@@ -73,7 +80,7 @@ func (l *lexer) scanIdent() (string, error) {
 			return "", err
 		}
 
-		if unicode.IsSpace(r) || r == ',' {
+		if !isNotAlphaNum(r) {
 			l.reader.UnreadRune()
 			break
 		}
@@ -82,6 +89,10 @@ func (l *lexer) scanIdent() (string, error) {
 	}
 
 	return str, nil
+}
+
+func isNotAlphaNum(r rune) bool {
+	return !unicode.IsSpace(r) && !strings.ContainsRune("`=\"',", r)
 }
 
 func (l *lexer) skipWhitespaces() error {

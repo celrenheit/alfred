@@ -4,9 +4,9 @@ package parser
 
 import "strconv"
 
-const _tokenKind_name = "tokenUnknownEOFIDENT_tokStartKeywordsSELECTSENDSHAREACCOUNTFROMTOWITHWHEREAND_tokEndKeywordsNUMBERCOMMA"
+const _tokenKind_name = "tokenUnknownEOFIDENT_tokStartKeywordsSELECTSENDSHAREACCOUNTFROMTOWITHWHEREANDSETDATA_tokEndKeywordsNUMBERCOMMAEQUAL"
 
-var _tokenKind_index = [...]uint8{0, 12, 15, 20, 37, 43, 47, 52, 59, 63, 65, 69, 74, 77, 92, 98, 103}
+var _tokenKind_index = [...]uint8{0, 12, 15, 20, 37, 43, 47, 52, 59, 63, 65, 69, 74, 77, 80, 84, 99, 105, 110, 115}
 
 func (i tokenKind) String() string {
 	if i < 0 || i >= tokenKind(len(_tokenKind_index)-1) {
