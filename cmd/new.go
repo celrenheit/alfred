@@ -46,17 +46,17 @@ var newCmd = &cobra.Command{
 		case len(args) > 1:
 			fmt.Printf("too many arguments '%v'\n", args)
 		case len(args) == 0 || args[0] == "wallet":
-			suffix := strings.ToUpper(viper.GetString("suffix"))
-			kp, err := generateKP(suffix)
-			if err != nil {
-				fatal("error creating new wallet:", err)
-			}
-
 			path := viper.GetString("db")
 			secret := viper.GetString("secret")
 			m, err := wallet.OpenSecretString(path, secret)
 			if err != nil {
 				fatal("error opening backup:", err)
+			}
+
+			suffix := strings.ToUpper(viper.GetString("suffix"))
+			kp, err := generateKP(suffix)
+			if err != nil {
+				fatal("error creating new wallet:", err)
 			}
 
 			name := cmd.Flag("name").Value.String()
