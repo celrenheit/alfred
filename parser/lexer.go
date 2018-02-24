@@ -36,6 +36,19 @@ func (l *lexer) Next() (*token, error) {
 		return &token{kind: tokenCOMMA, value: string(r)}, nil
 	case '=':
 		return &token{kind: tokenEQUAL, value: string(r)}, nil
+	case '"', '\'':
+		value, err := l.scanUntil(r)
+		if err != nil {
+			return nil, err
+		}
+
+		// read last '"'
+		_, _, err = l.reader.ReadRune()
+		if err != nil {
+			return nil, err
+		}
+
+		return &token{kind: tokenSTRING, value: value}, nil
 	}
 
 	if err := l.reader.UnreadRune(); err != nil {
@@ -81,6 +94,25 @@ func (l *lexer) scanIdent() (string, error) {
 		}
 
 		if !isNotAlphaNum(r) {
+			l.reader.UnreadRune()
+			break
+		}
+
+		str += string(r)
+	}
+
+	return str, nil
+}
+
+func (l *lexer) scanUntil(want rune) (string, error) {
+	str := ""
+	for {
+		r, _, err := l.reader.ReadRune()
+		if err != nil {
+			return "", err
+		}
+
+		if r == want {
 			l.reader.UnreadRune()
 			break
 		}

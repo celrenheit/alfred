@@ -22,6 +22,18 @@ func ParseReader(reader *strings.Reader) (s Statement, err error) {
 		s = &SendRequest{}
 	case tokenSHARE:
 		s = &ShareAccountRequest{}
+	case tokenSET:
+		tok, err := l.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		switch tok.kind {
+		case tokenDATA:
+			s = &SetDataRequest{}
+		default:
+			return nil, fmt.Errorf("parser: unknown statement '%s' got: '%v'", tok.value, tok)
+		}
 	default:
 		return nil, fmt.Errorf("parser: unknown statement '%s' got: '%v'", tok.value, tok)
 	}

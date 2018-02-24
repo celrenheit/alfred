@@ -11,7 +11,8 @@ const (
 	tokenUnknown tokenKind = iota
 	tokenEof               // EOF
 
-	tokenIdent // IDENT
+	tokenIdent  // IDENT
+	tokenSTRING // STRING
 
 	//
 
@@ -38,6 +39,7 @@ const (
 	tokenNumber // NUMBER
 	tokenCOMMA  // COMMA
 	tokenEQUAL  // EQUAL
+	tokenQUOTES // QUOTES
 )
 
 type token struct {

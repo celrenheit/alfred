@@ -9,6 +9,7 @@ type Kind int
 const (
 	SendKind Kind = iota + 1
 	ShareAccountKind
+	SetDataKind
 )
 
 type Statement interface {

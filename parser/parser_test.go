@@ -47,6 +47,30 @@ func TestParser(t *testing.T) {
 		{"SHARE ACCOUNT master WITH", nil, true},
 		{"SHARE ACCOUNT master WITH ,", nil, true},
 		{"SHARE ACCOUNT master", nil, true},
+		{"SET DATA foo = bar", &SetDataRequest{
+			KVs: map[string]DataEntry{
+				"foo": {SetDataFromString, "bar"},
+			},
+		}, false},
+		{`SET DATA foo = "hello world"`, &SetDataRequest{
+			KVs: map[string]DataEntry{
+				"foo": {SetDataFromString, "hello world"},
+			},
+		}, false},
+		{"SET DATA foo from ./bar", &SetDataRequest{
+			KVs: map[string]DataEntry{
+				"foo": {SetDataFromFile, "./bar"},
+			},
+		}, false},
+		{`SET DATA "hello world" from "./bar"`, &SetDataRequest{
+			KVs: map[string]DataEntry{
+				"hello world": {SetDataFromFile, "./bar"},
+			},
+		}, false},
+		{"SET DATA foo", nil, true},
+		{"SET DATA foo = ", nil, true},
+		{`SET DATA foo = "`, nil, true},
+		{`SET DATA foo from`, nil, true},
 	}
 
 	for _, test := range tests {
@@ -64,6 +88,8 @@ func TestParser(t *testing.T) {
 				require.Equal(t, SendKind, s.Kind())
 			case *ShareAccountRequest:
 				require.Equal(t, ShareAccountKind, s.Kind())
+			case *SetDataRequest:
+				require.Equal(t, SetDataKind, s.Kind())
 			default:
 				t.Fatalf("unexpected type %T", s)
 			}

@@ -20,6 +20,9 @@ func TestLexer(t *testing.T) {
 		{"`", 0, "", true},
 		{"", tokenEof, "", false},
 		{"=", tokenEQUAL, "=", false},
+		{`"dqsdqsd"`, tokenSTRING, "dqsdqsd", false},
+		{`"ab cd ef"`, tokenSTRING, "ab cd ef", false},
+		{`"dqsdqsd`, 0, "", true},
 	}
 
 	for _, test := range tests {
@@ -27,7 +30,7 @@ func TestLexer(t *testing.T) {
 			l := lexer{reader: strings.NewReader(test.input)}
 			tok, err := l.Next()
 			if test.wantErr {
-				require.Error(t, err)
+				require.Error(t, err, "got: %v", tok)
 				return
 			}
 
