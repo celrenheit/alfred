@@ -67,6 +67,12 @@ func TestParser(t *testing.T) {
 				"hello world": {SetDataFromFile, "./bar"},
 			},
 		}, false},
+		{`SET DATA foo from ./text.txt, bar = "hello world"`, &SetDataRequest{
+			KVs: map[string]DataEntry{
+				"foo": {SetDataFromFile, "./text.txt"},
+				"bar": {SetDataFromString, "hello world"},
+			},
+		}, false},
 		{"SET DATA foo", nil, true},
 		{"SET DATA foo = ", nil, true},
 		{`SET DATA foo = "`, nil, true},
