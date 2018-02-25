@@ -31,6 +31,11 @@ const (
 	tokenAND   // AND
 	tokenSET   // SET
 	tokenDATA  // DATA
+	tokenBUY   // BUY
+	tokenAT    // AT
+	tokenFOR   // FOR
+	tokenSELL  // SELL
+	tokenUSING // USING
 
 	_tokEndKeywords
 

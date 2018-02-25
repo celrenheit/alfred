@@ -10,6 +10,8 @@ const (
 	SendKind Kind = iota + 1
 	ShareAccountKind
 	SetDataKind
+	BuyOfferKind
+	SellOfferKind
 )
 
 type Statement interface {

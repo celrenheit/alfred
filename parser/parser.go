@@ -34,6 +34,10 @@ func ParseReader(reader *strings.Reader) (s Statement, err error) {
 		default:
 			return nil, fmt.Errorf("parser: unknown statement '%s' got: '%v'", tok.value, tok)
 		}
+	case tokenBUY:
+		s = &Offer{kind: BuyOfferKind}
+	case tokenSELL:
+		s = &Offer{kind: SellOfferKind}
 	default:
 		return nil, fmt.Errorf("parser: unknown statement '%s' got: '%v'", tok.value, tok)
 	}
