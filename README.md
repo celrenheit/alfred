@@ -23,9 +23,13 @@
   - [Creating a random wallet](#creating-a-random-wallet)
     - [Creating a vanity address](#creating-a-vanity-address)
   - [Show balances:](#show-balances)
-  - [Sending lumens](#sending-lumens)
+  - [Sending lumens or assets](#sending-lumens-or-assets)
   - [Adding contacts](#adding-contacts)
+  - [Sharing an account](#sharing-an-account)
+  - [Setting data](#setting-data)
+  - [Trust an asset](#trust-an-asset)
 - [Disclaimer](#disclaimer)
+- [Credits](#credits)
 - [Donate](#donate)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -88,7 +92,7 @@ Output:
 +----------------------------------------------------------+----------+-----------+
 ```
 
-## Sending lumens
+## Sending lumens or assets
 
 ```shell
 alfred send 10 XLM from master to jennifer
@@ -127,10 +131,28 @@ alfred please set data mykey1 from ./text.txt
 alfred please 'set data "my key 1" = "my value 1", "my key 2" from "./text space.txt"' 
 ```
 
+## Trust an asset
+
+To trust an asset known to Alfred:
+```shell
+alfred trust MOBI
+```
+
+Alternatively, you can trust for a custom asset using:
+```shell
+alfred trust HUG GXXXX
+```
+
+Where GXXX is the issuing account.
+
 # Disclaimer
 
 USE AT YOUR OWN RISK.
 Always keep your secret seeds in a safe place (for example, a paper wallet).
+
+# Credits
+
+Partial list of assets are coming from the great [stellarterm](https://github.com/irisli/stellarterm) project. Go check it out.
 
 # Donate
 

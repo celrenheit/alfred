@@ -15,12 +15,12 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
 
+	"github.com/celrenheit/alfred/assets"
 	"github.com/celrenheit/alfred/parser"
 	"github.com/celrenheit/alfred/wallet"
 	"github.com/manifoldco/promptui"
@@ -92,10 +92,6 @@ func init() {
 }
 
 func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
-	if req.Currency != "XLM" {
-		return errors.New("only XLM is supported right now")
-	}
-
 	client := getClient(viper.GetBool("testnet"))
 
 	path := viper.GetString("db")
@@ -104,6 +100,14 @@ func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
 	if err != nil {
 		return err
 	}
+
+	// Check choosen currency
+	asset, err := selectAsset(req.Currency)
+	if err != nil {
+		return err
+	}
+
+	// Check trust
 
 	var (
 		from = req.From
@@ -173,7 +177,7 @@ func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
 		}
 	}
 
-	_, exists, err := getAccount(client, src.Address())
+	srcAcc, exists, err := getAccount(client, src.Address())
 	if err != nil {
 		return err
 	}
@@ -182,21 +186,36 @@ func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
 		return fmt.Errorf("source account does exists, please fund it first")
 	}
 
-	_, exists, err = getAccount(client, to)
+	destAcc, exists, err := getAccount(client, to)
 	if err != nil {
 		return err
+	}
+
+	if !hasTrustline(destAcc, *asset) {
+		return fmt.Errorf("destination account needs to trust %v", asset)
+	}
+
+	var amount interface{}
+	if asset.BuilderAsset.Native {
+		amount = build.NativeAmount{Amount: req.Amount}
+	} else {
+		amount = build.CreditAmount{
+			Code:   asset.BuilderAsset.Code,
+			Issuer: asset.BuilderAsset.Issuer,
+			Amount: req.Amount,
+		}
 	}
 
 	var txnMutator build.TransactionMutator
 	if exists {
 		txnMutator = build.Payment(
 			build.Destination{AddressOrSeed: to},
-			build.NativeAmount{Amount: req.Amount},
+			amount,
 		)
 	} else {
 		txnMutator = build.CreateAccount(
 			build.Destination{AddressOrSeed: to},
-			build.NativeAmount{Amount: req.Amount},
+			amount,
 		)
 	}
 
@@ -207,6 +226,10 @@ func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
 	}
 	if memo != nil {
 		opts = append(opts, memo)
+	}
+
+	if !hasTrustline(srcAcc, *asset) {
+		opts = append(opts, build.Trust(asset.BuilderAsset.Code, asset.BuilderAsset.Issuer))
 	}
 
 	if viper.GetBool("testnet") {
@@ -449,6 +472,19 @@ func setData(cmd *cobra.Command, req *parser.SetDataRequest) error {
 	return nil
 }
 
+func hasTrustline(acc horizon.Account, asset assets.Asset) bool {
+	if asset.BuilderAsset.Native {
+		return true
+	}
+	for _, b := range acc.Balances {
+		if b.Code == asset.BuilderAsset.Code && b.Issuer == asset.BuilderAsset.Issuer {
+			return true
+		}
+	}
+
+	return false
+}
+
 func getAddress(m *wallet.Alfred, in string) keypair.KP {
 	if kp, err := keypair.Parse(in); err == nil { // to custom address
 		return kp
@@ -474,4 +510,32 @@ func selectWallet(m *wallet.Alfred) (*keypair.Full, error) {
 	}
 
 	return m.Stellar.Wallets[idx].Keypair.(*keypair.Full), nil
+}
+
+func selectAsset(cur string) (*assets.Asset, error) {
+	if strings.ToLower(cur) == "lumens" {
+		cur = "XLM"
+	}
+
+	asts := assets.GetAssets(cur)
+	if len(asts) == 0 {
+		return nil, fmt.Errorf("asset %v is not supported right now", cur)
+	}
+
+	var asset assets.Asset
+	if len(asts) == 1 { // only one we check this
+		asset = asts[0]
+	} else { // otherwise, prompt
+		idx, _, err := (&promptui.Select{
+			Label: "Choose currency",
+			Items: asts,
+		}).Run()
+		if err != nil {
+			return nil, err
+		}
+
+		asset = asts[idx]
+	}
+
+	return &asset, nil
 }
