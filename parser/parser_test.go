@@ -91,12 +91,13 @@ func TestParser(t *testing.T) {
 			Price:   "",
 			Selling: "",
 		}, false},
-		{`SELL 100 MOBI AT 0.1000 FOR XLM`, &Offer{
+		{`SELL 100 MOBI AT 0.1000 FOR XLM with wallet1`, &Offer{
 			kind:    SellOfferKind,
 			Amount:  "100",
 			Buying:  "XLM",
 			Price:   "0.1000",
 			Selling: "MOBI",
+			Account: "wallet1",
 		}, false},
 		{`BUY 100 MOBI USING AT`, nil, true},
 		{`BUY MOBI 100`, nil, true},

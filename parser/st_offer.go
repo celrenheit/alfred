@@ -53,6 +53,8 @@ loop:
 			case SellOfferKind:
 				s.Buying = cur
 			}
+		case tokenWith:
+			s.Account, err = parseExpect(l, tokenIdent, tokenSTRING)
 		case tokenEof:
 			break loop
 		default:
