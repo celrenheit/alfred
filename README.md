@@ -2,7 +2,7 @@
 <p align="center">
   <img alt="alfred please send 100 XLM to jennifer" src="./img/main.png">
   <br />
-  A user friendly Stellar wallets manager.
+  A loyal and tireless butler for your stellar wallets
 </p>
 
 <p align="center">
