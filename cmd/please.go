@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/celrenheit/alfred/assets"
@@ -457,6 +458,11 @@ func createOffer(m *wallet.Alfred, client *horizon.Client, cmd *cobra.Command, r
 		return err
 	}
 
+	amount, err := strconv.ParseFloat(req.Amount, 64)
+	if err != nil {
+		return err
+	}
+
 	price := req.Price
 	if price == "" {
 		var (
@@ -481,6 +487,25 @@ func createOffer(m *wallet.Alfred, client *horizon.Client, cmd *cobra.Command, r
 		}
 
 		price = priceLvls[0].Price
+
+		p, err := strconv.ParseFloat(price, 64)
+		if err != nil {
+			return err
+		}
+		switch req.Kind() {
+		case parser.BuyOfferKind:
+			amount /= p
+		case parser.SellOfferKind:
+		}
+	}
+
+	strAmount := strconv.FormatFloat(amount, 'f', 7, 64)
+	var amountDescr string
+	switch req.Kind() {
+	case parser.BuyOfferKind:
+		amountDescr = fmt.Sprintf("%s %s = %f %s", req.Amount, buying.CodeString(), amount, selling.CodeString())
+	case parser.SellOfferKind:
+		amountDescr = fmt.Sprintf("%f %s", amount, selling.CodeString())
 	}
 
 	opts := []build.TransactionMutator{
@@ -490,7 +515,7 @@ func createOffer(m *wallet.Alfred, client *horizon.Client, cmd *cobra.Command, r
 			Buying:  buying.BuilderAsset,
 			Selling: selling.BuilderAsset,
 			Price:   build.Price(price),
-		}, build.Amount(req.Amount)),
+		}, build.Amount(strAmount)),
 	}
 
 	if viper.GetBool("testnet") {
@@ -516,7 +541,7 @@ func createOffer(m *wallet.Alfred, client *horizon.Client, cmd *cobra.Command, r
 
 	if !viper.GetBool("yes") {
 		printSummaryTable(map[string]string{
-			"Amount":  req.Amount,
+			"Amount":  amountDescr,
 			"Buying":  buying.String(),
 			"Selling": selling.String(),
 			"Price":   price,

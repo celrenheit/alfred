@@ -131,3 +131,11 @@ func (a Asset) String() string {
 		a.BuilderAsset.Code, a.Domain,
 		a.BuilderAsset.Issuer)
 }
+
+func (a Asset) CodeString() string {
+	if a.BuilderAsset.Native {
+		return "XLM"
+	}
+
+	return a.BuilderAsset.Code
+}
