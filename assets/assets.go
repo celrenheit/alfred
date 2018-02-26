@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizon"
 )
 
 type Asset struct {
@@ -100,6 +101,25 @@ func GetByCodeIssuer(code, issuer string) *Asset {
 	}
 
 	return nil
+}
+
+func (a Asset) ToHorizonAsset() horizon.Asset {
+	if a.BuilderAsset.Native {
+		return horizon.Asset{
+			Type: "native",
+		}
+	}
+
+	typ := "credit_alphanum4"
+	if len(a.BuilderAsset.Code) > 4 {
+		typ = "credit_alphanum12"
+	}
+
+	return horizon.Asset{
+		Type:   typ,
+		Code:   a.BuilderAsset.Code,
+		Issuer: a.BuilderAsset.Issuer,
+	}
 }
 
 func (a Asset) String() string {

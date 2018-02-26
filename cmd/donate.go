@@ -19,6 +19,7 @@ import (
 	"strconv"
 
 	"github.com/celrenheit/alfred/parser"
+	"github.com/celrenheit/alfred/wallet"
 	"github.com/manifoldco/promptui"
 
 	"github.com/spf13/cobra"
@@ -58,7 +59,16 @@ var donateCmd = &cobra.Command{
 			}
 		}
 
-		err := sendRequest(cmd, &parser.SendRequest{
+		client := getClient(viper.GetBool("testnet"))
+
+		path := viper.GetString("db")
+		secret := viper.GetString("secret")
+		m, err := wallet.OpenSecretString(path, secret)
+		if err != nil {
+			fatal(err)
+		}
+
+		err = sendRequest(m, client, cmd, &parser.SendRequest{
 			Amount:   amount,
 			Currency: "XLM",
 			To:       alfredAddress,

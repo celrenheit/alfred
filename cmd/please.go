@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -54,13 +55,24 @@ var pleaseCmd = &cobra.Command{
 			fatal(err)
 		}
 
+		client := getClient(viper.GetBool("testnet"))
+
+		path := viper.GetString("db")
+		secret := viper.GetString("secret")
+		m, err := wallet.OpenSecretString(path, secret)
+		if err != nil {
+			fatal(err)
+		}
+
 		switch req := statement.(type) {
 		case *parser.SendRequest:
-			err = sendRequest(cmd, req)
+			err = sendRequest(m, client, cmd, req)
 		case *parser.ShareAccountRequest:
-			err = shareRequest(cmd, req)
+			err = shareRequest(m, client, cmd, req)
 		case *parser.SetDataRequest:
-			err = setData(cmd, req)
+			err = setData(m, client, cmd, req)
+		case *parser.Offer:
+			err = createOffer(m, client, cmd, req)
 		default:
 			fatalf("unsupported statement type: %T", statement.Kind())
 		}
@@ -91,16 +103,7 @@ func init() {
 	viper.BindPFlags(pleaseCmd.Flags())
 }
 
-func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
-	client := getClient(viper.GetBool("testnet"))
-
-	path := viper.GetString("db")
-	secret := viper.GetString("secret")
-	m, err := wallet.OpenSecretString(path, secret)
-	if err != nil {
-		return err
-	}
-
+func sendRequest(m *wallet.Alfred, client *horizon.Client, cmd *cobra.Command, req *parser.SendRequest) error {
 	// Check choosen currency
 	asset, err := selectAsset(req.Currency)
 	if err != nil {
@@ -114,24 +117,9 @@ func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
 		to   = req.To
 	)
 
-	var src *keypair.Full
-	if from != "" {
-		var w *wallet.Wallet
-		if addr, err := keypair.Parse(from); err == nil {
-			w = m.WalletByAddress(addr.Address())
-		} else {
-			w = m.WalletByName(from)
-			if w == nil {
-				return fmt.Errorf("wallet '%s' not found", from)
-			}
-		}
-
-		src = w.Keypair.(*keypair.Full)
-	} else {
-		src, err = selectWallet(m)
-		if err != nil {
-			return err
-		}
+	src, err := getOrSelectWallet(m, from)
+	if err != nil {
+		return err
 	}
 
 	var memo build.TransactionMutator
@@ -254,13 +242,12 @@ func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
 	}
 
 	if !viper.GetBool("yes") {
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetAlignment(tablewriter.ALIGN_RIGHT)
-		table.Append([]string{"Amount", req.Amount})
-		table.Append([]string{"Currency", req.Currency})
-		table.Append([]string{"Source", src.Address()})
-		table.Append([]string{"Destination", to})
-		table.Render()
+		printSummaryTable(map[string]string{
+			"Amount":      req.Amount,
+			"Currency":    req.Currency,
+			"Source":      src.Address(),
+			"Destination": to,
+		})
 
 		_, err = (&promptui.Prompt{
 			Label:     "Are you sure",
@@ -280,16 +267,7 @@ func sendRequest(cmd *cobra.Command, req *parser.SendRequest) error {
 	return nil
 }
 
-func shareRequest(cmd *cobra.Command, req *parser.ShareAccountRequest) error {
-	client := getClient(viper.GetBool("testnet"))
-
-	path := viper.GetString("db")
-	secret := viper.GetString("secret")
-	m, err := wallet.OpenSecretString(path, secret)
-	if err != nil {
-		return err
-	}
-
+func shareRequest(m *wallet.Alfred, client *horizon.Client, cmd *cobra.Command, req *parser.ShareAccountRequest) error {
 	getAddress := func(in string) keypair.KP {
 		if kp, err := keypair.Parse(in); err == nil { // to custom address
 			return kp
@@ -393,16 +371,7 @@ func shareRequest(cmd *cobra.Command, req *parser.ShareAccountRequest) error {
 	return nil
 }
 
-func setData(cmd *cobra.Command, req *parser.SetDataRequest) error {
-	client := getClient(viper.GetBool("testnet"))
-
-	path := viper.GetString("db")
-	secret := viper.GetString("secret")
-	m, err := wallet.OpenSecretString(path, secret)
-	if err != nil {
-		return err
-	}
-
+func setData(m *wallet.Alfred, client *horizon.Client, cmd *cobra.Command, req *parser.SetDataRequest) error {
 	src, err := selectWallet(m)
 	if err != nil {
 		return err
@@ -454,6 +423,104 @@ func setData(cmd *cobra.Command, req *parser.SetDataRequest) error {
 	}
 
 	if !viper.GetBool("yes") {
+		_, err = (&promptui.Prompt{
+			Label:     "Are you sure",
+			IsConfirm: true,
+		}).Run()
+		if err != nil {
+			return err
+		}
+	}
+
+	resp, err := client.SubmitTransaction(txeB64)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(resp.Hash)
+	return nil
+}
+
+func createOffer(m *wallet.Alfred, client *horizon.Client, cmd *cobra.Command, req *parser.Offer) error {
+	src, err := getOrSelectWallet(m, req.Account)
+	if err != nil {
+		return err
+	}
+
+	buying, err := selectAsset(req.Buying)
+	if err != nil {
+		return err
+	}
+
+	selling, err := selectAsset(req.Selling)
+	if err != nil {
+		return err
+	}
+
+	price := req.Price
+	if price == "" {
+		var (
+			book      horizon.OrderBookSummary
+			priceLvls []horizon.PriceLevel
+		)
+
+		book, err = client.LoadOrderBook(selling.ToHorizonAsset(), buying.ToHorizonAsset())
+		if err != nil {
+			return err
+		}
+
+		switch req.Kind() {
+		case parser.BuyOfferKind:
+			priceLvls = book.Bids
+		case parser.SellOfferKind:
+			priceLvls = book.Bids
+		}
+
+		if len(priceLvls) == 0 {
+			return errors.New("no offers found in the orderbook, you should specify a price")
+		}
+
+		price = priceLvls[0].Price
+	}
+
+	opts := []build.TransactionMutator{
+		build.SourceAccount{src.Seed()},
+		build.AutoSequence{SequenceProvider: client},
+		build.CreateOffer(build.Rate{
+			Buying:  buying.BuilderAsset,
+			Selling: selling.BuilderAsset,
+			Price:   build.Price(price),
+		}, build.Amount(req.Amount)),
+	}
+
+	if viper.GetBool("testnet") {
+		opts = append(opts, build.TestNetwork)
+	} else {
+		opts = append(opts, build.PublicNetwork)
+	}
+
+	tx, err := build.Transaction(opts...)
+	if err != nil {
+		return err
+	}
+
+	txe, err := tx.Sign(src.Seed())
+	if err != nil {
+		return err
+	}
+
+	txeB64, err := txe.Base64()
+	if err != nil {
+		return err
+	}
+
+	if !viper.GetBool("yes") {
+		printSummaryTable(map[string]string{
+			"Amount":  req.Amount,
+			"Buying":  buying.String(),
+			"Selling": selling.String(),
+			"Price":   price,
+		})
 		_, err = (&promptui.Prompt{
 			Label:     "Are you sure",
 			IsConfirm: true,
@@ -538,4 +605,44 @@ func selectAsset(cur string) (*assets.Asset, error) {
 	}
 
 	return &asset, nil
+}
+
+func getOrSelectWallet(m *wallet.Alfred, from string) (src *keypair.Full, err error) {
+	if from != "" {
+		var w *wallet.Wallet
+		if addr, err := keypair.Parse(from); err == nil {
+			w = m.WalletByAddress(addr.Address())
+		} else {
+			w = m.WalletByName(from)
+		}
+
+		if w == nil {
+			return nil, fmt.Errorf("wallet '%s' not found", from)
+		}
+
+		src = w.Keypair.(*keypair.Full)
+	} else {
+		src, err = selectWallet(m)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return src, nil
+}
+
+func printSummaryTable(kvs map[string]string) {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetAlignment(tablewriter.ALIGN_RIGHT)
+
+	network := "PUBLIC"
+	if viper.GetBool("testnet") {
+		network = "TESTNET"
+	}
+
+	kvs["Network"] = network
+	for k, v := range kvs {
+		table.Append([]string{k, v})
+	}
+	table.Render()
 }
