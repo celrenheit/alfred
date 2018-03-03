@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/andreburgaud/crypt2go/padding"
 	"github.com/stellar/go/strkey"
@@ -52,4 +53,11 @@ func decrypt(secret, ciphertext []byte) ([]byte, error) {
 
 	nonce, ciphertext := ciphertext[:size], ciphertext[size:]
 	return gcm.Open(nil, nonce, ciphertext, nil)
+}
+
+func TrimAddress(addr string) string {
+	return strings.Join([]string{
+		addr[:5],
+		addr[len(addr)-5:],
+	}, "...")
 }

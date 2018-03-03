@@ -14,9 +14,9 @@ type Wallet struct {
 }
 
 func (w *Wallet) String() string {
-	str := w.Keypair.Address()
-	if w.Name != str {
-		str = fmt.Sprintf("%s (%s)", w.Name, w.Keypair.Address())
+	str := TrimAddress(w.Keypair.Address())
+	if w.Name != w.Keypair.Address() {
+		str = fmt.Sprintf("%s (%s)", w.Name, str)
 	}
 	return str
 }

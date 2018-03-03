@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"os"
+	"sync"
 
 	"github.com/olekukonko/tablewriter"
 
@@ -50,18 +51,24 @@ var balancesCmd = &cobra.Command{
 				continue
 			}
 
+			var once sync.Once
 			for _, b := range balances {
 				code := b.Asset.Code
 				if b.Asset.Type == "native" {
 					code = "XLM"
 				}
-				row := []string{w.Name, code, b.Balance}
+
+				name := ""
+				once.Do(func() {
+					name = w.String()
+				})
+
+				row := []string{name, code, b.Balance}
 				rows = append(rows, row)
 			}
 		}
 
 		table.SetRowLine(true)
-		table.SetAutoMergeCells(true)
 		table.SetHeader(header)
 		table.AppendBulk(rows)
 		table.Render()
