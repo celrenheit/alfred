@@ -86,6 +86,15 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/lib/pq"
+  packages = [
+    ".",
+    "oid"
+  ]
+  revision = "88edab0803230a3898347e77b474f8c1820a1f20"
+
+[[projects]]
+  branch = "master"
   name = "github.com/lunixbochs/vtclean"
   packages = ["."]
   revision = "d14193dfc626125c831501c1c42340b4248e1f5a"
@@ -245,7 +254,7 @@
     "support/render/problem",
     "xdr"
   ]
-  revision = "b69edf9fcd1a2a50c41be335e3861e2c97a6de26"
+  revision = "2aa6a9cf653bbcef34cc8296a5f3995e7079848a"
 
 [[projects]]
   name = "github.com/stretchr/objx"
@@ -267,7 +276,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "432090b8f568c018896cd8a0fb0345872bbac6ce"
+  revision = "beaf6a35706e5032ae4c3fcf342c663c069f44d2"
 
 [[projects]]
   branch = "master"
@@ -288,7 +297,7 @@
     "unix",
     "windows"
   ]
-  revision = "37707fdb30a5b38865cfb95e5aab41707daec7fd"
+  revision = "f6cff0780e542efa0c8e864dc8fa522808f6a598"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -304,10 +313,10 @@
   version = "v0.3.0"
 
 [[projects]]
-  branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
+  revision = "7f97868eec74b32b0982dd158a51a446d1da7eb5"
+  version = "v2.1.1"
 
 [solve-meta]
   analyzer-name = "dep"
