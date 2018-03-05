@@ -494,7 +494,12 @@ func createOffer(m *wallet.Alfred, client *horizon.Client, cmd *cobra.Command, r
 		}
 		switch req.Kind() {
 		case parser.BuyOfferKind:
-			amount /= p
+			switch req.AmountKind {
+			case parser.AmountBuyKind:
+				amount /= p
+			case parser.AmountSellKind:
+
+			}
 		case parser.SellOfferKind:
 		}
 	}
