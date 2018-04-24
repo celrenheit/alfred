@@ -55,8 +55,9 @@ var newCmd = &cobra.Command{
 				fatal("error opening backup:", err)
 			}
 
+			prefix := strings.ToUpper(viper.GetString("prefix"))
 			suffix := strings.ToUpper(viper.GetString("suffix"))
-			kp, err := generateKP(suffix)
+			kp, err := generateKP(prefix, suffix)
 			if err != nil {
 				fatal("error creating new wallet:", err)
 			}
@@ -177,8 +178,8 @@ func promptMemo() (memo *wallet.Memo, err error) {
 	return memo, err
 }
 
-func generateKP(suffix string) (*keypair.Full, error) {
-	if suffix == "" {
+func generateKP(prefix, suffix string) (*keypair.Full, error) {
+	if prefix == "" && suffix == "" {
 		return keypair.Random()
 	}
 	start := time.Now()
@@ -206,7 +207,9 @@ func generateKP(suffix string) (*keypair.Full, error) {
 					return err
 				}
 
-				if strings.HasSuffix(kp.Address(), suffix) {
+				addr := kp.Address()
+
+				if strings.HasPrefix(addr[2:], prefix) && strings.HasSuffix(addr, suffix) {
 					ch <- kp
 					return nil
 				}
@@ -237,6 +240,7 @@ func init() {
 	// is called directly, e.g.:
 	newCmd.Flags().Bool("print-seed", false, "prints seeds to stdout")
 	newCmd.Flags().String("name", "", "name of the wallet")
+	newCmd.Flags().String("prefix", "", "prefix for vanity addresses")
 	newCmd.Flags().String("suffix", "", "suffix for vanity addresses")
 	viper.BindPFlags(newCmd.Flags())
 }
