@@ -37,10 +37,17 @@ import (
 // pleaseCmd represents the import command
 var pleaseCmd = &cobra.Command{
 	Use:     "please",
-	Short:   "please",
+	Short:   "Run commands such as send and buy",
 	Aliases: []string{"p"},
-	Long:    `send XLM to someone`,
-	Example: "alfred please send 20 XLM from master to jennifer",
+	Long:    `please command allows to execute command`,
+	Example: `alfred please send 20 XLM from master to jennifer
+alfred please send 33 MOBI from master to jennifer
+
+alfred please buy 100 MOBI using XLM (will pick the best price)
+alfred please buy MOBI using 100 XLM (will pick the best price)
+alfred please buy 100 MOBI AT 0.1000 using XLM
+alfred please sell 100 MOBI FOR XLM (will pick the best price)
+	`,
 	PreRunE: middlewares(checkDB, checkSecret),
 	Run: func(cmd *cobra.Command, args []string) {
 		var query string
